@@ -237,13 +237,13 @@ reportINDirectSNPs <- function(mod=mod.fixed, e2m=e2m.fixed, tst=tests.fixed, pv
 
 ####################################### Load example  data and formating #######################################
 
-y <- fread("largedata/mediation_inputs/y_matrix.txt", header=T,data.table=FALSE)
+y <- fread("input/y_matrix.txt", header=T,data.table=FALSE)
 y = as.matrix(y)
-Z <- fread("largedata/mediation_inputs/Z_matrix.txt", header=T,data.table=FALSE)
+Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
 Z = as.matrix(Z)
-X0 <- fread("largedata/mediation_inputs/X0_matrix.txt", header=T,data.table=FALSE)
+X0 <- fread("input/X0_matrix.txt", header=T,data.table=FALSE)
 X0 = as.matrix(X0)
-X <- fread("largedata/mediation_inputs/X_matrix.txt", header=T,data.table=FALSE)
+X <- fread("input/X_matrix.txt", header=T,data.table=FALSE)
 X = as.matrix(X)
 
 ncores = 4
