@@ -1,0 +1,455 @@
+---
+title: "Master Med genes"
+author: "Zhikai Yang"
+date: "06-16-2020"
+output: NULL
+---
+
+
+## Normalize the path:
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) 
+knitr::opts_knit$set(root.dir=normalizePath('../../')) 
+```
+
+
+```{r}
+library(data.table)
+fmedi <- list.files(path="largedata/simulation/mediationh2/resulth2", pattern="mediators_fixed_bic", full.names = T)
+falpha <- list.files(path="largedata/simulation/mediationh2", pattern="alpha_corn_s0_top", full.names = T)
+fres <- list.files(path="largedata/simulation/mediationh2/resulth2", pattern="res_fixed_bic", full.names = T)
+
+
+miss_medi = gsub(".*s0_|.csv", "", fmedi)
+miss_alpha = gsub(".*s0_|.txt", "", falpha)
+id = which(!(miss_alpha %in% miss_medi))
+
+
+TPall = data.frame(file=miss_medi, True_positive_rate = rep(0,length(miss_medi)) )
+TPall$file = as.character(TPall$file)
+
+for (i in 1:length(miss_medi)) {
+  
+med_bic <- fread(paste("largedata/simulation/mediationh2/resulth2/", "mediators_fixed_bic_corn_s0_",miss_medi[i],".csv", sep = ""), sep = ",",header = T)
+med_bic = med_bic[which(med_bic$padj <= 0.05),]
+id = as.numeric(gsub("V", "", med_bic$id))
+
+alpha = fread(paste("largedata/simulation/mediationh2/", "alpha_corn_s0_",miss_medi[i],".txt", sep = ""),header = F)
+id_n0 = which(alpha != 0)
+TPall$True_positive_rate[i] = length(intersect(id, id_n0))/length(id_n0)
+
+}
+
+fwrite(TPall,"largedata/simulation/TPall_fixed_bic.txt", sep="\t", row.names = F, quote = F)
+
+```
+
+
+```{r}
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+
+
+TPall = fread("largedata/simulation/TPall_fixed_eq.txt", sep = "\t",header = T)
+TPall$top = as.integer(gsub("top_|_qtl_.*", "", TPall$file))
+TPall$qtl = as.integer(gsub(".*qtl_|_qtlar_.*", "", TPall$file))
+TPall$qtlar = as.integer(gsub(".*qtlar_|_h2_.*", "", TPall$file))
+TPall$h2 = as.numeric(gsub(".*h2_|_seed_.*", "", TPall$file))
+TPall$seed = as.integer(gsub(".*seed_", "", TPall$file))
+
+TPall_stat = data_summary(TPall, varname = "True_positive_rate", groupnames = c("qtl","qtlar","h2","top"))
+
+
+
+TPall_stat$h2 = as.character(TPall_stat$h2)
+TPall_stat$top = as.factor(TPall_stat$top)
+
+library(ggplot2)
+
+plist = list()
+i =1
+for (qtlari in c(10, 50, 100)) {
+  for (qtli in c(10, 50, 100)) {
+    
+    plist[[i]] = ggplot(TPall_stat[which((TPall_stat$qtl == qtli)&(TPall_stat$qtlar == qtlari)),], aes(x=top, y=True_positive_rate, group=h2, color=h2)) + 
+    geom_errorbar(aes(ymin=True_positive_rate-sd, ymax=True_positive_rate+sd), width=.1, 
+    position=position_dodge(0.05)) +
+    geom_line() + geom_point()+
+    theme_minimal()+
+    xlab("Top N mediators") +
+    ylim(0, 1.5)+
+    ylab("True Positive Rate") +
+    ggtitle(paste("QTL_", qtlari, "_eQTL_",qtli)) +
+    theme_classic() +
+    labs(fill = "") +
+    theme(plot.title = element_text(size=20, face = "bold"), 
+          axis.text=element_text(size=16, face="bold"),
+          strip.text.x = element_text(size = 16, face = "bold"),
+          axis.title=element_text(size=fsize, face="bold"),
+          #axis.text.x = element_text(angle = 20, hjust=0.6),
+          legend.position = "bottom", 
+          legend.title = element_text(size=fsize, face="bold"),
+          legend.text = element_text(size=fsize))
+
+    i=i+1
+  }
+}
+
+
+library(ggpubr)
+figure <- ggarrange(plist[[1]], plist[[2]],plist[[3]],plist[[4]],plist[[5]],plist[[6]],plist[[7]],plist[[8]],plist[[9]], ncol = 3, nrow = 3)
+figure
+
+```
+
+
+```{r}
+TPall1 = fread("largedata/simulation/TPall_fixed_eq.txt", sep = "\t",header = T)
+TPall1$top = as.integer(gsub("top_|_qtl_.*", "", TPall1$file))
+TPall1$qtl = as.integer(gsub(".*qtl_|_qtlar_.*", "", TPall1$file))
+TPall1$qtlar = as.integer(gsub(".*qtlar_|_h2_.*", "", TPall1$file))
+TPall1$h2 = as.numeric(gsub(".*h2_|_seed_.*", "", TPall1$file))
+TPall1$seed = as.integer(gsub(".*seed_", "", TPall1$file))
+TPall1$method = "Fixed_0.5"
+
+TPall2 = fread("largedata/simulation/TPall_fixed_bic.txt", sep = "\t",header = T)
+TPall2$top = as.integer(gsub("top_|_qtl_.*", "", TPall2$file))
+TPall2$qtl = as.integer(gsub(".*qtl_|_qtlar_.*", "", TPall2$file))
+TPall2$qtlar = as.integer(gsub(".*qtlar_|_h2_.*", "", TPall2$file))
+TPall2$h2 = as.numeric(gsub(".*h2_|_seed_.*", "", TPall2$file))
+TPall2$seed = as.integer(gsub(".*seed_", "", TPall2$file))
+TPall2$method = "Fixed_BIC"
+
+TPall3 = fread("largedata/simulation/TPall_mix_linear.txt", sep = "\t",header = T)
+TPall3$top = as.integer(gsub("top_|_qtl_.*", "", TPall3$file))
+TPall3$qtl = as.integer(gsub(".*qtl_|_qtlar_.*", "", TPall3$file))
+TPall3$qtlar = as.integer(gsub(".*qtlar_|_h2_.*", "", TPall3$file))
+TPall3$h2 = as.numeric(gsub(".*h2_|_seed_.*", "", TPall3$file))
+TPall3$seed = as.integer(gsub(".*seed_", "", TPall3$file))
+TPall3$method = "Mix_Linear"
+
+TPall4 = fread("largedata/simulation/TPall_mix_shrink.txt", sep = "\t",header = T)
+TPall4$top = as.integer(gsub("top_|_qtl_.*", "", TPall4$file))
+TPall4$qtl = as.integer(gsub(".*qtl_|_qtlar_.*", "", TPall4$file))
+TPall4$qtlar = as.integer(gsub(".*qtlar_|_h2_.*", "", TPall4$file))
+TPall4$h2 = as.numeric(gsub(".*h2_|_seed_.*", "", TPall4$file))
+TPall4$seed = as.integer(gsub(".*seed_", "", TPall4$file))
+TPall4$method = "Mix_Shrink"
+
+
+TPall = rbind(TPall1, TPall2, TPall3, TPall4)
+TPall_h2p25= TPall[which(TPall$h2==0.25),]
+TPall_h2p5= TPall[which(TPall$h2==0.5),]
+TPall_h2p75= TPall[which(TPall$h2==0.75),]
+
+
+TPall_h2p25_stat = data_summary(TPall_h2p25, varname = "True_positive_rate", groupnames = c("qtl","qtlar","method","top"))
+TPall_h2p5_stat = data_summary(TPall_h2p5, varname = "True_positive_rate", groupnames = c("qtl","qtlar","method","top"))
+TPall_h2p75_stat = data_summary(TPall_h2p75, varname = "True_positive_rate", groupnames = c("qtl","qtlar","method","top"))
+
+
+TPall_h2p25_stat$top = as.factor(TPall_h2p25_stat$top)
+TPall_h2p5_stat$top = as.factor(TPall_h2p5_stat$top)
+TPall_h2p75_stat$top = as.factor(TPall_h2p75_stat$top)
+
+
+
+```
+
+```{r}
+
+library(ggplot2)
+
+plist = list()
+i =1
+for (qtlari in c(10, 50, 100)) {
+  for (qtli in c(10, 50, 100)) {
+    
+    plist[[i]] = ggplot(TPall_h2p75_stat[which((TPall_h2p75_stat$qtl == qtli)&(TPall_h2p75_stat$qtlar == qtlari)),], aes(x=top, y=True_positive_rate, group=method, color=method)) + 
+    geom_errorbar(aes(ymin=True_positive_rate-sd, ymax=True_positive_rate+sd), width=.1, 
+    position=position_dodge(0.05)) +
+    geom_line() + geom_point()+
+    theme_minimal()+
+    xlab("") +
+    ylim(0, 1.5)+
+    ylab("") +
+    ggtitle(paste("QTL = ", qtlari, ", eQTL = ",qtli)) +
+    theme_classic() +
+    labs(fill = "") +
+    theme(plot.title = element_text(size=20, face = "bold"), 
+          axis.text=element_text(size=16, face="bold"),
+          strip.text.x = element_text(size = 16, face = "bold"),
+          axis.title=element_text(size=fsize, face="bold"),
+          #axis.text.x = element_text(angle = 20, hjust=0.6),
+          legend.position = "none", 
+          legend.title = element_text(size=fsize, face="bold"),
+          legend.text = element_text(size=fsize))
+
+    i=i+1
+  }
+}
+
+
+library(ggpubr)
+figure <- ggarrange(plist[[1]], plist[[2]],plist[[3]],plist[[4]],plist[[5]],plist[[6]],plist[[7]],plist[[8]],plist[[9]], ncol = 3, nrow = 3)
+figure
+
+
+pdf("graphs/sim_h2p75_noname.pdf", width = 12, height= 7.5)
+figure
+dev.off()
+
+
+pdf("graphs/sim_h2p75_qtl_50_eqtl_50.pdf", width = 10, height= 5)
+plist[[5]]
+dev.off()
+
+
+plist2 = list()
+i =1
+for (qtlari in c(10, 50, 100)) {
+  for (qtli in c(10, 50, 100)) {
+    
+    plist2[[i]] = ggplot(TPall_h2p5_stat[which((TPall_h2p5_stat$qtl == qtli)&(TPall_h2p5_stat$qtlar == qtlari)),], aes(x=top, y=True_positive_rate, group=method, color=method)) + 
+    geom_errorbar(aes(ymin=True_positive_rate-sd, ymax=True_positive_rate+sd), width=.1, 
+    position=position_dodge(0.05)) +
+    geom_line() + geom_point()+
+    theme_minimal()+
+    xlab("") +
+    ylim(0, 1.5)+
+    ylab("") +
+    ggtitle(paste("QTL = ", qtlari, ", eQTL = ",qtli)) +
+    theme_classic() +
+    labs(fill = "") +
+    theme(plot.title = element_text(size=20, face = "bold"), 
+          axis.text=element_text(size=16, face="bold"),
+          strip.text.x = element_text(size = 16, face = "bold"),
+          axis.title=element_text(size=fsize, face="bold"),
+          #axis.text.x = element_text(angle = 20, hjust=0.6),
+          legend.position = "none", 
+          legend.title = element_text(size=fsize, face="bold"),
+          legend.text = element_text(size=fsize))
+
+    i=i+1
+  }
+}
+
+
+
+plist3 = list()
+i =1
+for (qtlari in c(10, 50, 100)) {
+  for (qtli in c(10, 50, 100)) {
+    
+    plist3[[i]] = ggplot(TPall_h2p25_stat[which((TPall_h2p25_stat$qtl == qtli)&(TPall_h2p25_stat$qtlar == qtlari)),], aes(x=top, y=True_positive_rate, group=method, color=method)) + 
+    geom_errorbar(aes(ymin=True_positive_rate-sd, ymax=True_positive_rate+sd), width=.1, 
+    position=position_dodge(0.05)) +
+    geom_line() + geom_point()+
+    theme_minimal()+
+    xlab("") +
+    ylim(0, 1.5)+
+    ylab("") +
+    ggtitle(paste("QTL = ", qtlari, ", eQTL = ",qtli)) +
+    theme_classic() +
+    labs(fill = "") +
+    theme(plot.title = element_text(size=20, face = "bold"), 
+          axis.text=element_text(size=16, face="bold"),
+          strip.text.x = element_text(size = 16, face = "bold"),
+          axis.title=element_text(size=fsize, face="bold"),
+          #axis.text.x = element_text(angle = 20, hjust=0.6),
+          legend.position = "none", 
+          legend.title = element_text(size=fsize, face="bold"),
+          legend.text = element_text(size=fsize))
+
+    i=i+1
+  }
+}
+
+
+figure3 <- ggarrange(plist[[5]], plist2[[5]],plist3[[5]], ncol = 3, nrow = 1)
+figure3
+
+pdf("graphs/sim_h2_noname.pdf", width = 12, height= 2.5)
+figure3
+dev.off()
+
+
+```
+
+
+```{r}
+library(data.table)
+
+
+qtlar = fread("largedata/simulation/mediation/qtl_100_qtlar_100/qtlar.txt",header = F)
+dsnps = fread("largedata/simulation/mediation/qtl_100_qtlar_100/dsnps_fixed_bic_sim_std.csv",header = T)
+dsnps_id = as.numeric(gsub("V","",dsnps$snp))-1
+
+com = intersect((as.integer(dsnps_id) %/% 4), qtlar$V1)
+
+
+
+
+
+
+
+
+
+
+
+
+fdsnps <- list.files(path="largedata/simulation/mediation/result", pattern="dsnps_fixed_bic", full.names = T)
+fqtlar <- list.files(path="largedata/simulation/mediation", pattern="qtlar_corn_s0_top", full.names = T)
+fres <- list.files(path="largedata/simulation/mediation/result", pattern="res_fixed_bic", full.names = T)
+
+
+miss_dsnps = gsub(".*s0_|.csv", "", fdsnps)
+miss_qtlar = gsub(".*s0_|.txt", "", fqtlar)
+id = which(!(miss_qtlar %in% miss_dsnps))
+
+
+TPall = data.frame(file=miss_dsnps, True_positive_rate = rep(0,length(miss_dsnps)) )
+TPall$file = as.character(TPall$file)
+
+for (i in 1:length(miss_dsnps)) {
+  
+dsnps_bic <- fread(paste("largedata/simulation/mediation/result/", "dsnps_fixed_bic_corn_s0_",miss_medi[i],".csv", sep = ""), sep = ",",header = T)
+dsnps_bic = med_bic[which(med_bic$padj <= 0.05),]
+id = as.numeric(gsub("V", "", med_bic$id))
+
+alpha = fread(paste("largedata/simulation/mediation/", "alpha_corn_s0_",miss_medi[i],".txt", sep = ""),header = F)
+id_n0 = which(alpha != 0)
+TPall$True_positive_rate[i] = length(intersect(id, id_n0))/length(id_n0)
+
+}
+
+fwrite(TPall,"largedata/simulation/TPall.txt", sep="\t", row.names = F, quote = F)
+
+```
+
+
+
+#### no cor filtering
+
+
+```{r}
+library(data.table)
+fmedi <- list.files(path="largedata/simulation/no_cor_result", pattern="mediators_fixed_bic", full.names = T)
+falpha <- list.files(path="largedata/simulation/mediationh2", pattern="alpha_corn_s0_top", full.names = T)
+fres <- list.files(path="largedata/simulation/mediationh2/resulth2", pattern="res_fixed_bic", full.names = T)
+
+
+miss_medi = gsub(".*s0_|.csv", "", fmedi)
+miss_alpha = gsub(".*s0_|.txt", "", falpha)
+id = which(!(miss_alpha %in% miss_medi))
+
+
+TPall = data.frame(file=miss_medi, True_positive_rate = rep(0,length(miss_medi)) )
+TPall$file = as.character(TPall$file)
+
+for (i in 1:length(miss_medi)) {
+  
+med_bic <- fread(paste("largedata/simulation/no_cor_result/", "mediators_fixed_bic_corn_s0_",miss_medi[i],".csv", sep = ""), sep = ",",header = T)
+med_bic = med_bic[which(med_bic$padj <= 0.05),]
+id = as.numeric(gsub("V", "", med_bic$id))
+
+alpha = fread(paste("largedata/simulation/mediationh2/", "alpha_corn_s0_",miss_medi[i],".txt", sep = ""),header = F)
+id_n0 = which(alpha != 0)
+TPall$True_positive_rate[i] = length(intersect(id, id_n0))/length(id_n0)
+
+}
+
+fwrite(TPall,"largedata/simulation/TPall_fixed_bic_no_cor.txt", sep="\t", row.names = F, quote = F)
+
+```
+
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(ggpubr)
+
+
+TPall = fread("largedata/simulation/TPall_fixed_bic_no_cor.txt", sep = "\t",header = T)
+TPall$top = as.integer(gsub("top_|_qtl_.*", "", TPall$file))
+TPall$qtl = as.integer(gsub(".*qtl_|_qtlar_.*", "", TPall$file))
+TPall$qtlar = as.integer(gsub(".*qtlar_|_h2_.*", "", TPall$file))
+TPall$h2 = as.numeric(gsub(".*h2_|_seed_.*", "", TPall$file))
+TPall$seed = as.integer(gsub(".*seed_", "", TPall$file))
+
+TPall_stat = data_summary(TPall, varname = "True_positive_rate", groupnames = c("qtl","qtlar","h2","top"))
+
+
+
+TPall_stat$h2 = as.character(TPall_stat$h2)
+TPall_stat$top = as.factor(TPall_stat$top)
+TPall_stat$filtering = "no"
+
+
+TPall2 = fread("largedata/simulation/TPall_fixed_bic.txt", sep = "\t",header = T)
+TPall2$top = as.integer(gsub("top_|_qtl_.*", "", TPall2$file))
+TPall2$qtl = as.integer(gsub(".*qtl_|_qtlar_.*", "", TPall2$file))
+TPall2$qtlar = as.integer(gsub(".*qtlar_|_h2_.*", "", TPall2$file))
+TPall2$h2 = as.numeric(gsub(".*h2_|_seed_.*", "", TPall2$file))
+TPall2$seed = as.integer(gsub(".*seed_", "", TPall2$file))
+TPall2 = subset(TPall2, qtl == 50)
+TPall2 = subset(TPall2, qtlar == 50)
+
+TPall2_stat = data_summary(TPall2, varname = "True_positive_rate", groupnames = c("qtl","qtlar","h2","top"))
+
+
+
+TPall2_stat$h2 = as.character(TPall2_stat$h2)
+TPall2_stat$top = as.factor(TPall2_stat$top)
+TPall2_stat$filtering = "yes"
+
+TPall_stat_c = rbind(TPall_stat, TPall2_stat)
+
+fsize =18
+plist = list()
+i =1
+for (h2 in c("0.25","0.5","0.75")) {
+    
+plist[[i]] = ggplot(TPall_stat_c[which(TPall_stat_c$h2 == h2),], aes(x=top, y=True_positive_rate, group=filtering, color=filtering)) + 
+    geom_errorbar(aes(ymin=True_positive_rate-sd, ymax=True_positive_rate+sd), width=.1, 
+    position=position_dodge(0.05)) +
+    geom_line() + geom_point()+
+    theme_minimal()+
+    xlab("Top N mediators") +
+    ylim(0, 1.5)+
+    ylab("True Positive Rate") +
+    ggtitle(paste("h2 = ", h2)) +
+    theme_classic() +
+    labs(fill = "") +
+    theme(plot.title = element_text(size=20, face = "bold"), 
+          axis.text=element_text(size=16, face="bold"),
+          strip.text.x = element_text(size = 16, face = "bold"),
+          axis.title=element_text(size=fsize, face="bold"),
+          #axis.text.x = element_text(angle = 20, hjust=0.6),
+          legend.position = "bottom", 
+          legend.title = element_text(size=fsize, face="bold"),
+          legend.text = element_text(size=fsize))
+
+    i=i+1
+  }
+
+
+figure <- ggarrange(plist[[1]], plist[[2]],plist[[3]], ncol = 3, nrow = 1)
+figure
+
+pdf("graphs/sim_h2_no_filter_vs_filter.pdf", width = 12, height= 4)
+figure
+dev.off()
+
+```
+
