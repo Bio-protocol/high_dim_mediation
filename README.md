@@ -3,7 +3,7 @@
 
 ## Overview of mediation analysis Workflow
 
-![](graphs/mediation_work_flow.pdf)
+![](graphs/mediation_work_flow.png)
 
 ## Installation
 
