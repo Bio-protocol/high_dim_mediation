@@ -8,6 +8,8 @@ setwd('/common/jyanglab/zhikaiyang/projects/high_dim_mediation')   #set working 
 library(circlize)
 library(data.table)
 library(dplyr)
+library(rrBLUP)
+
 data<-read.table("./input/Chromosome_v4.txt",head=T,stringsAsFactors=FALSE,sep='\t') 
 
 p_chr <- vector()
