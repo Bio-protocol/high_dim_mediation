@@ -1,52 +1,91 @@
-# The code for this project is in profiling folder;
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
-inside of it, there are 1_GWAS folder, which holds the code for doing GWAS:
+# Data, Code and Workflows Guideline
 
-The prefix of the code name indicates the order to be carried out;
-Codes needs to be done in bash environment is in bash chunks;
-Codes needs to be done in R environment is in R chunks, if it is needed to be done in high performance computing environment, it will be noted in the front of the R chunks.
-To carry out the analysis, some part of the code needs to be adjusted like the path.
-For simplicity, the result files needed for manhattan plot for GWAS are moved into data folder.
+To guide eBook authors having a better sense of the workflow layout, here we briefly introduce the specific purposes of the dir system. 
 
 
-# Results
+1. __cache__: Here, it stores intermediate datasets or results that are generated during the preprocessing steps.
+2. __graphs__: The graphs/figures produced during the analysis.
+3. __input__: Here, we store the raw input data. Data size > 100M is not allowed. We recommend using small sample data for the illustration purpose of the workflow. If you have files > 100M, please contact the chapter editor to find a solution. 
+4. __lib__: The source code, functions, or algorithms used within the workflow.
+5. __output__: The final output results of the workflow.
+6. __workflow__: Step by step pipeline. It may contain some sub-directories. 
+    - It is suggested to use __a numbering system__ and __keywords__ to indicate the order and the main purpose of the scripts, i.e., `1_fastq_quality_checking.py`, `2_cleaned_reads_alignment.py`.
+    - To ensure reproducibility, please use the __relative path__ within the `workflow`.
+7. __README__: In the readme file, please briefly describe the purpose of the repository, the installation, and the input data format. 
+    - We recommend using a diagram to describe the workflow briefly.
+    - Provide the installation details.
+    - Show a small proportion of the input data unless the data file is in a well-known standard format, i.e., the `head` or `tail` of the input data.
 
-### Trait category
+## Overview of an example workflow: Fastq data quality checking
 
-- phenotypic traits and their categories `data/`
-- agronomy phenotype `data/geno_trait.txt`
-- metabolite phenotype `data/metabolite_rep1_genotype_namecorrect.txt`
+This is an example workflow to check the quality of the paired-end fastq files using `FastQC` software.
 
-### Mediation analysis results
+![](graphs/diagram.png)
 
-- direct SNP `data/input/dsnps_20149rows.csv`
-- indirect SNP `data/input/isnps_55257rows.csv`
-- mediator genes `data/input/mediators_23296rows_by_cat.csv`
+## Installation
 
-### GWAS results
-raw data:
-- agronomic traits GWAS: `/common/jyanglab/zhikaiyang/projects/mediation-analysis/largedata/geno_282/output`
-- metabolomics traits GWAS: `/common/jyanglab/shared/Gen_Xu/282_metabolite/output`
+- __Running environment__: 
+    - The workflow was constructed based on the __Linux system__ running the Oracle v1.6 to 1.8 java runtime environment (JREs).
 
-processed data:
-
-- Significant GWAS SNPs region within 100kb: `/common/jyanglab/zhikaiyang/projects/mediation/largedata/dsnps_vs_gwas/all_traits.all_res.txt`
-
-# For Mediation analysis, the code is in 2_mediation folder;
-
-there is no specific order for each R code, and they were run in high performance computing environment, and the jobs are submited with their corresponding slurm files;
-To carry out the analysis, some part of the code needs to be adjusted like the path.
-For simplicity, the result files needed for ploting the mediator genes in manhattan plot are moved into data folder.
-
-
-For visualization the mediation analysis result in manhattan plot, go the 3_visualization folder;
-The part of code that is needed to be done in HCC are noted;
-And for simplicity, the result generated in HCC are moved into data folder
-
-The plots in Fig.6 in the paper are from the two commands with comment "#mediator genes ploted in manhattan plot" above for the two tissues germinating shoot and leaf tips, noted by the comment; these two plots are each the first plot for each tissues in the code
-The 2nd plot for each tissue is the plot showing the position of each direct snps(snps whose coefficients are significantly non-zero in outcome model)
-The 3rd plot for each tissue is the plot showing the position of each indirect snps(snps whose coefficients are significantly non-zero in mediator model) 
+- __Required software and versions__: 
+    - [FastQC v0.11.9](http://www.bioinformatics.babraham.ac.uk/projects/download.html#fastqc)
+    - [multiqc](https://github.com/ewels/MultiQC)
+    - [R 3.6.3](https://cran.r-project.org/) for results ploting
+        - [RStudio 1.4](https://rstudio.com/), [ggplot2 3.3.3](https://cran.r-project.org/web/packages/ggplot2/index.html), [tidyr 1.1.2](https://github.com/tidyverse/tidyr)
 
 
+## Input Data
+
+The example data used here is the paired-end fastq file generated by using Illumina platform.  
+
+- R1 FASTQ file: `input/reads1.fastq`  
+- R2 FASTQ file: `input/reads2.fastq`  
+
+Each entry in a FASTQ files consists of 4 lines:  
+
+1. A sequence identifier with information about the sequencing run and the cluster. The exact contents of this line vary by based on the BCL to FASTQ conversion software used.  
+2. The sequence (the base calls; A, C, T, G and N).  
+3. A separator, which is simply a plus (+) sign.  
+4. The base call quality scores. These are Phred +33 encoded, using ASCII characters to represent the numerical quality scores.  
+
+The first entry of the input data:
+```
+@HWI-ST361_127_1000138:2:1101:1195:2141/1
+CGTTNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNGGAGGGGTTNNNNNNNNNNNNNNN
++
+[[[_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+```
 
 
+## Major steps
+
+#### Step 1: running the FastQC to conduct quality checking
+- Note that you have to normalize the path in the shell script.
+
+```
+sh workflow/1_run_fastqc.sh
+```
+
+#### Step 2: aggregate results from FastQC
+
+```
+sh workflow/2_aggregate_results.sh
+```
+
+#### Step 3: view the results
+
+- Results can be visualized by clicking `output/multiqc_report.html`.
+- Alternatively, you can plot the results yourself using the below R code.
+
+```
+3_visualize_results.Rmd
+```
+
+## Expected results
+
+![](graphs/figure1.png)
+
+## License
+It is a free and open source software, licensed under []() (choose a license from the suggested list:  [GPLv3](https://github.com/github/choosealicense.com/blob/gh-pages/_licenses/gpl-3.0.txt), [MIT](https://github.com/github/choosealicense.com/blob/gh-pages/LICENSE.md), or [CC BY 4.0](https://github.com/github/choosealicense.com/blob/gh-pages/_licenses/cc-by-4.0.txt)).
