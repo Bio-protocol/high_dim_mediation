@@ -58,7 +58,7 @@ Visualization of outputs of MedFix_BIC and GWAS:
 
 ![](graphs/circos.PNG)
 
-- In the circos plots, the outermost circular track represents the ten maize chromosomes; the next inner track shows the GWAS results, with two circular yellow dashed lines indicating -log(p-value) of 5 and 10 and the red lines denoting the position of direct SNPs;
+- In the circos plots, the outermost circular track represents the ten maize chromosomes; the next inner track shows the GWAS results, with two circular blue dashed lines indicating -log(p-value) of 5 and 10 and the red lines denoting the position of direct SNPs;
 the next inner track shows the relative positions of identified mediator genes (in this case, just 1 mediator identified) with different genes represented by different colors; the lines in the innermost circle connects mediators with their corresponding indirect SNPs.
 
 ## License
