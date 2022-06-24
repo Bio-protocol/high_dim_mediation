@@ -8,10 +8,10 @@
 ## Installation
 
 - __Running environment__: 
-    - The workflow was constructed based on the __Linux system__ running the R v3.5.
+    - The workflow was constructed based on the __Linux system__ running the R v3.5.1.
 
 - __Required software and versions__: 
-    - [R 3.5](https://cran.r-project.org/)
+    - [R 3.5.1](https://cran.r-project.org/)
         - /workflow/1_mediation_demo.R 
         - /lib/fromSKAT.R, highmed2019.r, MedWrapper.R, reporters.R, slurm_wrapper.R
 
