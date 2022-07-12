@@ -241,6 +241,7 @@ y <- fread("input/y_matrix.txt", header=T,data.table=FALSE)
 y = as.matrix(y)
 Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
 Z = as.matrix(Z)
+#X0 = prcomp(Z)$x[,1:3]
 X0 <- fread("input/X0_matrix.txt", header=T,data.table=FALSE)
 X0 = as.matrix(X0)
 X <- fread("input/X_matrix.txt", header=T,data.table=FALSE)
