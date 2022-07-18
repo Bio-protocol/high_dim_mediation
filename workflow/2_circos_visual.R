@@ -113,10 +113,11 @@ if (res_fixed_bic$n.direct >= 1) {
 if (res_fixed_bic$n.med >= 1) {
   
   mediators_fixed_bic <- fread("output/mediators_fixed_bic_trait_V1.csv", header = T , data.table=FALSE)
+  mediators_fixed_bic = subset(mediators_fixed_bic, padj <0.05)
     
-  color = c("#808080", "#FF9900", "#808080", "#808080", "#3399FF", "#00FFFF", "#FF00FF", "#990066", "#999999", "#000000")
+  color = c("#808080", "#FF9900", "#3399FF", "#00FFFF", "#FF00FF", "#990066", "#999999", "#000000")
   
-  mediators_fixed_bic_pos = data.frame(chr = "Chr1", start = 150000000, end = 150001000, value = rnorm(nrow(mediators_fixed_bic), 0, 0.5), col = color[1:nrow(mediators_fixed_bic)])
+  mediators_fixed_bic_pos = data.frame(chr = c("Chr1", "Chr2","Chr3","Chr4","Chr5", "Chr6"), start = 150000000, end = 150001000, value = rnorm(nrow(mediators_fixed_bic), 0, 0.5), col = color[1:nrow(mediators_fixed_bic)])
     
   
     
@@ -132,7 +133,9 @@ if (res_fixed_bic$n.med >= 1) {
     
     isnps_fixed_bic <- fread("output/isnps_fixed_bic_trait_V1.csv")
     
-    mediators_isnps_fixed_bic = data.frame(medi = isnps_fixed_bic$medi, chr = "Chr1", start = 150000000, end = 150001000, col = "#808080", isnps_for_medi = isnps_fixed_bic$snps_for_medi, snp_chr = paste0("Chr", as.integer(gsub("-.*","",isnps_fixed_bic$snps_for_medi))), snp_pos = as.integer(gsub(".*-","",isnps_fixed_bic$snps_for_medi)))
+    mediators_isnps_fixed_bic = data.frame(medi = isnps_fixed_bic$medi, isnps_for_medi = isnps_fixed_bic$snps_for_medi, snp_chr = paste0("Chr", as.integer(gsub("-.*","",isnps_fixed_bic$snps_for_medi))), snp_pos = as.integer(gsub(".*-","",isnps_fixed_bic$snps_for_medi)))
+    mediators_fixed_bic_pos_n = cbind(medi= mediators_fixed_bic$id, mediators_fixed_bic_pos[,c(1,2,3,5)])
+    mediators_isnps_fixed_bic = merge(mediators_isnps_fixed_bic, mediators_fixed_bic_pos_n, by = "medi")
     
     for (i in 1 : nrow(mediators_isnps_fixed_bic)) {
       circos.link(mediators_isnps_fixed_bic$chr[i], c(mediators_isnps_fixed_bic$start[i], mediators_isnps_fixed_bic$end[i]), mediators_isnps_fixed_bic$snp_chr[i], mediators_isnps_fixed_bic$snp_pos[i], col = mediators_isnps_fixed_bic$col[i],  border = mediators_isnps_fixed_bic$col[i])
