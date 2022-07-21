@@ -8,12 +8,17 @@
 ## Installation
 
 - __Running environment__: 
-    - The workflow was constructed based on the __Linux system__ running the R v3.5.1.
+    - The workflow was constructed based on the __Linux system__ running the [R v4.1.1](https://cran.r-project.org/).
 
-- __Required software and versions__: 
-    - [R v3.5.1](https://cran.r-project.org/)
+- __Required software packages__: 
+    - [Rstudio](https://www.rstudio.com/products/rstudio/download/)
     - `install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))`
         
+```R
+install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
+install.packages(devtools)
+devtools::install_github("jyanglab/GMA")
+```
 
 ## Input Data
 

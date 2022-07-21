@@ -9,13 +9,15 @@ author: "Zhikai Yang, Qi Zhang, Jinliang Yang"
 ## Installation
 
 - __Running environment__: 
-    - The workflow was constructed based on the __Linux system__ running the R v3.5.1.
+    - The workflow was constructed based on the __Linux system__ running the [R v4.1.1](https://cran.r-project.org/).
 
 - __Required software and versions__: 
-    - [R v3.5.1](https://cran.r-project.org/)
+    - [Rstudio](https://www.rstudio.com/products/rstudio/download/)
       
 ```{r}
 install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
+install.packages(devtools)
+devtools::install_github("jyanglab/GMA")
 ```
 
 ## Input Data
@@ -29,7 +31,7 @@ install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doPara
 library("data.table")
 y <- fread("input/y_matrix.txt", header=T,data.table=FALSE)
 y = as.matrix(y)
-dim(y)
+dim(y) #271   1
 head(y)
 ```
 
@@ -40,33 +42,63 @@ head(y)
 ```{r}
 Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
 Z = as.matrix(Z)
+dim(Z) #271 5000
+Z[1:10, 1:10]
 ```
   
 - __X matrix__ (`input/X_matrix.txt`): 
   - The `n x k` intermediate Omics matrix; `k` is the number of Omics traits. 
   In the example, gene expression data (i.e., RNA-seq read counts of `k` genes) was used as the intermediate traits .
 
-
-
-
+```{r}
 X <- fread("input/X_matrix.txt", header=T,data.table=FALSE)
 X = as.matrix(X)
-
-ncores = 4
-
-trait = colnames(y)[1]
+dim(X) #271 1200
+X[1:10, 1:10]
 ```
-
 
 
 #### Optional input data:
+
 - __X0 matrix__ (`input/X0_matrix.txt`): 
   - A matrix of confounding effects. In the example, three principal components calculated from the Z matrix were used to control population structure.
   
-
 ```{r}
-#X0 = prcomp(Z)$x[,1:3] # use this line of code to calculate principal components if no X0_matrix.txt file provided
 X0 <- fread("input/X0_matrix.txt", header=T,data.table=FALSE)
 X0 = as.matrix(X0)
+dim(X0) #271   3
+head(X0)
+# X0 = prcomp(Z)$x[,1:3] # use this line of code to calculate principal components if no X0_matrix.txt file provided
 ```
 
+## Major steps
+
+#### Step 1: Calculate confounding effect (or the `X0` matrix)
+
+Several principal components can be used as the fixed effects to control population structure as the confounding effects if using a structured population.
+
+```{bash}
+Rscript workflow/1_mediation_demo.R
+```
+
+
+
+```{}
+
+```
+
+
+- Note that you have to adjust the path at the begining in R script; and the path, ntasks, mem, time in the shell script.
+
+```
+sbatch workflow/1_mediation_demo.sh
+```
+
+#### Step 2: Visualize the results
+
+- You can plot the results yourself using the below R code.
+- Note that you have to adjust the path at the begining in R script;
+
+```
+2_circos_visual.R
+```
