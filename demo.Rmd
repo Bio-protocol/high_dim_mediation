@@ -1,0 +1,62 @@
+---
+title: "Workflow of GMA"
+output: html_pdf
+date: "07-21-2022"
+author: "Zhikai Yang, Qi Zhang, Jinliang Yang"
+---
+
+
+## Installation
+
+- __Running environment__: 
+    - The workflow was constructed based on the __Linux system__ running the R v3.5.1.
+
+- __Required software and versions__: 
+    - [R v3.5.1](https://cran.r-project.org/)
+      
+```{r}
+install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
+```
+
+## Input Data
+
+#### Required input data:
+
+- __y matrix__ (`input/y_matrix.txt`): 
+  - A `n x 1` matrix of phenotype values; `n` is the number of individuals.
+- __Z matrix__ (`input/Z_matrix.txt`): 
+  - The `n x m` genotype matrix of  data; `m` is the number of bi-allelic SNP markers, coded as `-1, 0, 1`.
+- __X matrix__ (`input/X_matrix.txt`): 
+  - The `n x k` intermediate Omics matrix; `k` is the number of Omics traits. 
+  In the example, gene expression data (i.e., RNA-seq read counts of `k` genes) was used as the intermediate traits .
+
+
+```{r}
+####################################### Load example  data #######################################
+library("data.table")
+y <- fread("input/y_matrix.txt", header=T,data.table=FALSE)
+y = as.matrix(y)
+Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
+Z = as.matrix(Z)
+
+X <- fread("input/X_matrix.txt", header=T,data.table=FALSE)
+X = as.matrix(X)
+
+ncores = 4
+
+trait = colnames(y)[1]
+```
+
+
+
+#### Optional input data:
+- __X0 matrix__ (`input/X0_matrix.txt`): 
+  - A matrix of confounding effects. In the example, three principal components calculated from the Z matrix were used to control population structure.
+  
+
+```{r}
+#X0 = prcomp(Z)$x[,1:3] # use this line of code to calculate principal components if no X0_matrix.txt file provided
+X0 <- fread("input/X0_matrix.txt", header=T,data.table=FALSE)
+X0 = as.matrix(X0)
+```
+
