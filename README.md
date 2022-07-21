@@ -19,12 +19,14 @@
 
 #### Required input data:
 
-- __Z matrix__ (`input/Z_matrix.txt`): 
-  - The genotype matrix of bi-allelic SNP data, coded as `-1, 0, 1`, with column represents SNP and row represents each line.
-- __X matrix__ (`input/X_matrix.txt`): 
-  - The intermediate Omics data. In the example, gene expression data was used with column represents RNA-seq read counts for each line.
 - __y matrix__ (`input/y_matrix.txt`): 
-  - A matrix of phenotype values.
+  - A `n x 1` matrix of phenotype values; `n` is the number of individuals.
+- __Z matrix__ (`input/Z_matrix.txt`): 
+  - The `n x m` genotype matrix of  data; `m` is the number of bi-allelic SNP markers, coded as `-1, 0, 1`.
+- __X matrix__ (`input/X_matrix.txt`): 
+  - The `n x k` intermediate Omics matrix; `k` is the number of Omics traits. 
+  In the example, gene expression data (i.e., RNA-seq read counts of `k` genes) was used as the intermediate traits .
+
 
 #### Optional input data:
 - __X0 matrix__ (`input/X0_matrix.txt`): 

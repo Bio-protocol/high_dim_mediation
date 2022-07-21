@@ -24,20 +24,30 @@ install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doPara
 
 - __y matrix__ (`input/y_matrix.txt`): 
   - A `n x 1` matrix of phenotype values; `n` is the number of individuals.
+  
+```{r}
+library("data.table")
+y <- fread("input/y_matrix.txt", header=T,data.table=FALSE)
+y = as.matrix(y)
+dim(y)
+head(y)
+```
+
+  
 - __Z matrix__ (`input/Z_matrix.txt`): 
   - The `n x m` genotype matrix of  data; `m` is the number of bi-allelic SNP markers, coded as `-1, 0, 1`.
+
+```{r}
+Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
+Z = as.matrix(Z)
+```
+  
 - __X matrix__ (`input/X_matrix.txt`): 
   - The `n x k` intermediate Omics matrix; `k` is the number of Omics traits. 
   In the example, gene expression data (i.e., RNA-seq read counts of `k` genes) was used as the intermediate traits .
 
 
-```{r}
-####################################### Load example  data #######################################
-library("data.table")
-y <- fread("input/y_matrix.txt", header=T,data.table=FALSE)
-y = as.matrix(y)
-Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
-Z = as.matrix(Z)
+
 
 X <- fread("input/X_matrix.txt", header=T,data.table=FALSE)
 X = as.matrix(X)
