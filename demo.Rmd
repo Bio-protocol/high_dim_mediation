@@ -16,8 +16,6 @@ author: "Zhikai Yang, Qi Zhang, Jinliang Yang"
       
 ```{r}
 install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
-install.packages(devtools)
-devtools::install_github("jyanglab/GMA")
 ```
 
 ## Input Data
@@ -37,7 +35,7 @@ head(y)
 
   
 - __Z matrix__ (`input/Z_matrix.txt`): 
-  - The `n x m` genotype matrix of  data; `m` is the number of bi-allelic SNP markers, coded as `-1, 0, 1`.
+  - The `n x m` genotype matrix of data; `m` is the number of bi-allelic SNP markers, coded as `-1, 0, 1`.
 
 ```{r}
 Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
@@ -77,21 +75,41 @@ head(X0)
 
 Several principal components can be used as the fixed effects to control population structure as the confounding effects if using a structured population.
 
-```{bash}
-Rscript workflow/1_mediation_demo.R
+```{r}
+library(data.table)
+#library(GMA)
+library(glmnet)
+library(MASS)
+library(rrBLUP)
+library(parallel)
+library(doParallel)
+library(CompQuadForm)
+source('lib/highmed2019.r')
+source('lib/fromSKAT.R')
+source('lib/MedWrapper.R')
+source('lib/reporters.R')
+        
+Z <- fread("input/Z_matrix.txt", header=T, data.table=FALSE)
+Z = as.matrix(Z)
+X0 <- getpca(Z, p=3) # here the first p=3 PCs were extracted.
 ```
 
+#### Step 2: Conduct GMA using different methods
 
 
-```{}
+```{r}
+# run the fixed effect model that assign equal penalty on the two data types.
+run_GMA(y,X0,X,Z, ncores=10, model="MedFix_eq", output_folder="output/")
 
-```
+# run the fixed effect model that minimizes BIC
+run_GMA(y,X0,X,Z, ncores=10, model="MedFix_fixed", output_folder="output/")
 
+# run the random effect model using linear kernel, and extract the model that minimizes BIC
+run_GMA(y,X0,X,Z, ncores=4, model="MedMix_linear", output_folder="output/")
 
-- Note that you have to adjust the path at the begining in R script; and the path, ntasks, mem, time in the shell script.
+# run the random effect model using shrink_EJ kernel, and extract the model that minimizes BIC
+run_GMA(y,X0,X,Z, ncores=10, model="MedMix_shrink", output_folder="output/")
 
-```
-sbatch workflow/1_mediation_demo.sh
 ```
 
 #### Step 2: Visualize the results
@@ -99,6 +117,6 @@ sbatch workflow/1_mediation_demo.sh
 - You can plot the results yourself using the below R code.
 - Note that you have to adjust the path at the begining in R script;
 
-```
+```{r}
 2_circos_visual.R
 ```

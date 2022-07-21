@@ -10,7 +10,7 @@ library(data.table)
 library(dplyr)
 library(rrBLUP)
 
-data<-read.table("./input/Chromosome_v4.txt",head=T,stringsAsFactors=FALSE,sep='\t') 
+data <- read.table("./input/Chromosome_v4.txt",head=T,stringsAsFactors=FALSE,sep='\t') 
 
 p_chr <- vector()
 p_start <- vector()
@@ -139,15 +139,7 @@ if (res_fixed_bic$n.med >= 1) {
     
     for (i in 1 : nrow(mediators_isnps_fixed_bic)) {
       circos.link(mediators_isnps_fixed_bic$chr[i], c(mediators_isnps_fixed_bic$start[i], mediators_isnps_fixed_bic$end[i]), mediators_isnps_fixed_bic$snp_chr[i], mediators_isnps_fixed_bic$snp_pos[i], col = mediators_isnps_fixed_bic$col[i],  border = mediators_isnps_fixed_bic$col[i])
-      
     }
-    
-    
-
-  
-  
-  
-  
 }
 
 

@@ -41,7 +41,8 @@ adlassoMixWrapper <- function(Z,X,X0,y,kernel='linear',ncores=1,pmax=length(y)-2
     library(glmnet)
     library(MASS)
     source('lib/highmed2019.r')
-    try(adlassoMix(X,y,K,X0=X0,lambda=lambda,init=list(tau=var(y)/2,ve=var(y)/2),pmax = pmax,err.max=1e-5,iter.max=200,iter.lasso.max=1e4,method.var='REML')) ## 'MLE') ## method.var=MLE or REML
+    try(adlassoMix(X,y,K,X0=X0,lambda=lambda,init=list(tau=var(y)/2,ve=var(y)/2),pmax = pmax,
+                   err.max=1e-5,iter.max=200,iter.lasso.max=1e4,method.var='REML')) ## 'MLE') ## method.var=MLE or REML
   }
   names(results.all) = lambda.seq
   negll.all = sapply(results.all, getElement,name='negll')
@@ -258,6 +259,7 @@ trait = colnames(y)[1]
 ####################################### run the estimation step for Med_Fix_BIC 
 
 vs.fixed = adlasso2typeWrapper(y,X0,X,Z,ncores=ncores) 
+
 mod.fixed = vs.fixed[['model']]  # extract the model that minimizes BIC
 e2m.fixed= e2mFixed(mod.fixed,ncores=ncores) # for mod.fixed, run the mediator models for the mediators with non-zero estimated coefficient in the outcome model
 

@@ -296,7 +296,9 @@ scoreTestBase<- function(Q,eig){ ## base function for score test as in SKAT
   return(out$p.value)
 }
 
-scoreTestMedmix <- function(mod,X0,X){### score tests for the direct exposure effect on the outcome, and the exposure effects on the individual mediators with non-zero mediator-outcome coefficients.
+#' score tests for the direct exposure effect on the outcome, 
+#' and the exposure effects on the individual mediators with non-zero mediator-outcome coefficients.
+scoreTestMedmix <- function(mod,X0,X){
   y = mod[['y']]
 #  X = mod[['X']]
 #  X0 = mod[['X0']]
@@ -496,7 +498,8 @@ cov.adlasso.2type <- function(X,b,wadj,lambda,s2,p0,p){ ## computing the covaria
   return(output)
 }
 
-adlasso.2type <- function(y,X,Z,pz,X0=NULL,pmax=length(y)-2){ ### main function for the fixed effect DEM model
+adlasso.2type <- function(y,X,Z,pz,X0=NULL,pmax=length(y)-2){ 
+  ### main function for the fixed effect DEM model
     n = length(y) ##
     p = ncol(X)
     q = ncol(Z)
@@ -512,7 +515,8 @@ adlasso.2type <- function(y,X,Z,pz,X0=NULL,pmax=length(y)-2){ ### main function 
     cc = ((1-pz)*p+pz*q)/(p+q+p0)
     w0 =c(rep(0,p0),rep(1-pz,p),rep(pz,q))
     w0 = w0/cc
-    glmnet0 = glmnet(Xall,y,family='gaussian',standardize=F,intercept=T,penalty.factor=w0,pmax=pmax)
+    #glmnet0 = glmnet(Xall,y,family='gaussian',standardize=F,intercept=T,penalty.factor=w0,pmax=pmax)
+    glmnet0 = glmnet(Xall,y,family='gaussian',standardize=F,intercept=T,pmax=pmax)
 #    print('glmnet0')
     lambdatot = glmnet0$lambda
     lambda = lambdatot/cc
@@ -549,7 +553,8 @@ adlasso.2type <- function(y,X,Z,pz,X0=NULL,pmax=length(y)-2){ ### main function 
 }
  
  
-adlasso.2type.fixedlambda <- function(lambda,y,X,Z,pz,X0=NULL,pmax=length(y)-2){ ### main function for the fixed effect DEM model ## pz = 0.5
+adlasso.2type.fixedlambda <- function(lambda,y,X,Z,pz,X0=NULL,pmax=length(y)-2){ 
+  ### main function for the fixed effect DEM model ## pz = 0.5
     n = length(y) ##
     p = ncol(X)
     q = ncol(Z)
@@ -587,7 +592,8 @@ adlasso.2type.fixedlambda <- function(lambda,y,X,Z,pz,X0=NULL,pmax=length(y)-2){
 
 
 
-medH.L2fixed <- function(mod,e2m,res.test=NA,p.adj.method=NA,pval.cut=1){ ## calculate the direct and indirect effects of the fixed model
+medH.L2fixed <- function(mod,e2m,res.test=NA,p.adj.method=NA,pval.cut=1){ 
+  ## calculate the direct and indirect effects of the fixed model
   y = mod[['y']]
   X = mod[['X']]
   n = nrow(X)

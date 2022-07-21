@@ -16,8 +16,6 @@
         
 ```R
 install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
-install.packages(devtools)
-devtools::install_github("jyanglab/GMA")
 ```
 
 ## Input Data
