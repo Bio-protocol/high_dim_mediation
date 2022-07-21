@@ -12,18 +12,24 @@
 
 - __Required software and versions__: 
     - [R v3.5.1](https://cran.r-project.org/)
-        - /workflow/1_mediation_demo.R 
-        - /lib/fromSKAT.R, highmed2019.r, MedWrapper.R, reporters.R, slurm_wrapper.R
+    - `install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))`
+        
 
 ## Input Data
 
-The example data used here are simulated files.  
+#### Required input data:
 
-- `input/Z_matrix.txt` : Genotype (bi-allele SNP data, coded as -1, 0, 1, with each column represents each SNP, and each row represents each line)
-- `input/X0_matrix.txt` : Confounder (Principal components of Z matrix, with each column represents each principal component, and each row represents each line)
-- `input/X_matrix.txt` : Gene Expression (each column represents each gene expression, and each row represents each line)
-- `input/y_matrix.txt` : Phenotype (each column represents each trait, and each row represents each line)
+- __Z matrix__ (`input/Z_matrix.txt`): 
+  - The genotype matrix of bi-allelic SNP data, coded as `-1, 0, 1`, with column represents SNP and row represents each line.
+- __X matrix__ (`input/X_matrix.txt`): 
+  - The intermediate Omics data. In the example, gene expression data was used with column represents RNA-seq read counts for each line.
+- __y matrix__ (`input/y_matrix.txt`): 
+  - A matrix of phenotype values.
 
+#### Optional input data:
+- __X0 matrix__ (`input/X0_matrix.txt`): 
+  - A matrix of confounding effects. In the example, three principal components calculated from the Z matrix were used to control population structure.
+  
 
 
 ## Major steps
@@ -35,7 +41,8 @@ The example data used here are simulated files.
 sbatch workflow/1_mediation_demo.sh
 ```
 
-#### Step 2: Visualization of outputs
+#### Step 2: Visualize the results
+
 - You can plot the results yourself using the below R code.
 - Note that you have to adjust the path at the begining in R script;
 
