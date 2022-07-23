@@ -15,7 +15,8 @@ author: "Zhikai Yang, Qi Zhang, Jinliang Yang"
     - [Rstudio](https://www.rstudio.com/products/rstudio/download/)
       
 ```{r, eval=FALSE}
-install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
+install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", 
+                   "doParallel", "CompQuadForm", "circlize", "dplyr"))
 ```
 
 ## Input Data
@@ -76,6 +77,17 @@ head(X0)
 Several principal components can be used as the fixed effects to control population structure as the confounding effects if using a structured population.
 
 ```{r}
+source('lib/utils.R')
+        
+Z <- fread("input/Z_matrix.txt", header=T, data.table=FALSE)
+Z = as.matrix(Z)
+X0 <- getpca(Z, p=3) # here the first p=3 PCs were extracted.
+```
+
+#### Step 2: Conduct GMA using different methods
+
+
+```{r}
 library(data.table)
 #library(GMA)
 library(glmnet)
@@ -88,16 +100,7 @@ source('lib/highmed2019.r')
 source('lib/fromSKAT.R')
 source('lib/MedWrapper.R')
 source('lib/reporters.R')
-        
-Z <- fread("input/Z_matrix.txt", header=T, data.table=FALSE)
-Z = as.matrix(Z)
-X0 <- getpca(Z, p=3) # here the first p=3 PCs were extracted.
-```
 
-#### Step 2: Conduct GMA using different methods
-
-
-```{r}
 subX = X[, 1:100]
 # run the fixed effect model that assign equal penalty on the two data types.
 run_GMA(y, X0, subX, Z, ncores=10, model="MedFix_eq", output_folder="output/")
@@ -119,7 +122,18 @@ run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_shrink", output_folder="output/
 
 ```{r}
 library(circlize)
-library(data.table)
 library(dplyr)
-library(rrBLUP)
+
+gwas <- qGWAS(y, Z, plot=FALSE)
+
+
+tiff("graphs/circos.tiff", res=600, units = "mm", height = 120, width = 120)
+par(mar=c(0,0,1,0))
+
+circos_med(chrlen="input/Chromosome_v4.txt", 
+           gwas=gwas,
+           med_res="output/res_fixed_bic_trait_V1.csv", 
+           dsnp_res="output/dsnps_fixed_bic_trait_V1.csv", 
+           isnp_res="output/isnps_fixed_bic_trait_V1.csv" )
+dev.off()
 ```
