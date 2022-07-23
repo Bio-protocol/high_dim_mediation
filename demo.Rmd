@@ -125,15 +125,15 @@ library(circlize)
 library(dplyr)
 
 gwas <- qGWAS(y, Z, plot=FALSE)
+fwrite(gwas, "output/gwas_results.csv", sep=",", row.names = FALSE, quote=FALSE)
 
 
-tiff("graphs/circos.tiff", res=600, units = "mm", height = 120, width = 120)
-par(mar=c(0,0,1,0))
 
-circos_med(chrlen="input/Chromosome_v4.txt", 
-           gwas=gwas,
-           med_res="output/res_fixed_bic_trait_V1.csv", 
+circos_med(gwas_res="output/gwas_results.csv",
+           med_res="output/mediators_fixed_bic_trait_V1.csv", 
            dsnp_res="output/dsnps_fixed_bic_trait_V1.csv", 
-           isnp_res="output/isnps_fixed_bic_trait_V1.csv" )
-dev.off()
+           isnp_res="output/isnps_fixed_bic_trait_V1.csv",
+           chrlen="input/Chromosome_v4.txt", 
+           gene_position= "input/gene_pos.csv",
+           out_tiff = "graphs/circos.tiff")
 ```

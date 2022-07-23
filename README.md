@@ -74,4 +74,4 @@ Visualization of outputs of MedFix_BIC and GWAS:
 the next inner track shows the relative positions of identified mediator genes with different genes represented by different colors; the lines in the innermost circle connects mediators with their corresponding indirect SNPs.
 
 ## License
-It is a free and open source software, licensed under []() (choose a license from the suggested list:  [GPLv3](https://github.com/github/choosealicense.com/blob/gh-pages/_licenses/gpl-3.0.txt), [MIT](https://github.com/github/choosealicense.com/blob/gh-pages/LICENSE.md), or [CC BY 4.0](https://github.com/github/choosealicense.com/blob/gh-pages/_licenses/cc-by-4.0.txt)).
+It is a free and open source software, licensed under [GPLv3](https://github.com/github/choosealicense.com/blob/gh-pages/_licenses/gpl-3.0.txt).

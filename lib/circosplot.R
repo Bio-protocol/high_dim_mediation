@@ -17,15 +17,18 @@
 #' X0 <- getpca(Z, p=3)
 #'
 #' @export
-circos_med <- function(chrlen="input/Chromosome_v4.txt", 
-                       gwas=gwas,
-                       med_res="output/res_fixed_bic_trait_V1.csv", 
+circos_med <- function(gwas_res="output/gwas_results.csv",
+                       med_res="output/mediators_fixed_bic_trait_V1.csv", 
                        dsnp_res="output/dsnps_fixed_bic_trait_V1.csv", 
-                       isnp_res="output/isnps_fixed_bic_trait_V1.csv" 
+                       isnp_res="output/isnps_fixed_bic_trait_V1.csv",
+                       chrlen="input/Chromosome_v4.txt", 
+                       gene_position= "input/gene_pos.csv",
+                       out_tiff = "graphs/circos.tiff"
                        ){
   
 
-  
+  tiff(out_tiff, res=600, units = "mm", height = 120, width = 120)
+  par(mar=c(0,0,1,0))
   ### Set up the chrs
   data <- read.table(chrlen,head=T,stringsAsFactors=FALSE,sep='\t') 
   p_chr <- vector()
@@ -55,6 +58,7 @@ circos_med <- function(chrlen="input/Chromosome_v4.txt",
   
   bg.col <- rep(colours()[c(407,140)], 5)
   
+  gwas <- read.csv(gwas_res)
   ch=gwas[,1]
   ch=gsub("Chr","",ch)
   col=ifelse(as.numeric(ch)%%2==1,"darkblue", "darkred")
@@ -65,11 +69,7 @@ circos_med <- function(chrlen="input/Chromosome_v4.txt",
     ,bg.col =bg.col, bg.border = "white",track.height = 0.40
   ) 
   
-  res_fixed_bic <- fread(med_res, header = T , data.table=FALSE)
-  
 
-  
-  if (res_fixed_bic$n.direct >= 1) {
     #dSNPs
     dsnps_fixed_bic <- fread(dsnp_res, header = T, data.table=FALSE)
     dsnps_fixed_bic_d = data.frame(Chr = paste0("Chr",gsub("-.*","", dsnps_fixed_bic$snp)), 
@@ -93,48 +93,57 @@ circos_med <- function(chrlen="input/Chromosome_v4.txt",
                           circos.genomicLines(region, value, col = "#0000FF", ...)
                         }, track.index =2)
     
-  }
   
   ####################################################################################################################################
-  #MED_VISUAL
-  
-  if (res_fixed_bic$n.med >= 1) {
-    
+
     mediators_fixed_bic <- fread(med_res, header = T , data.table=FALSE)
-    mediators_fixed_bic = subset(mediators_fixed_bic, padj <0.05)
+    # mediators_fixed_bic = subset(mediators_fixed_bic, padj <0.05)
     message(sprintf("###>>> ploting [ %s ] mediators ...", nrow(mediators_fixed_bic)))
     
     color = brewer.pal(n = nrow(mediators_fixed_bic), name = "Set1")
     
-    mediators_fixed_bic_pos = data.frame(chr = c("Chr1", "Chr2","Chr3","Chr4","Chr5", "Chr6"), 
-                                         start = 150000000, end = 150001000, value = rnorm(nrow(mediators_fixed_bic), 0, 0.5), 
-                                         col = color)
-    
+    ### gene position
+    genepos <- read.csv(gene_position)
+    mediators_fixed_bic_pos <- merge(genepos, mediators_fixed_bic, by="id")
+    mediators_fixed_bic_pos$col <- color
     
     circos.track(ylim = c(0, 0.05), track.height = 0.05, bg.border = "black")
     
     for(i in 1:nrow(mediators_fixed_bic_pos))
     {
-      circos.rect((mediators_fixed_bic_pos[i,2]-1000000),0,(mediators_fixed_bic_pos[i,3]+1000000),0.05,
+      circos.rect((mediators_fixed_bic_pos$start[i]-1000000),0,(mediators_fixed_bic_pos$end[i] +1000000),0.05,
                   sector.index=mediators_fixed_bic_pos$chr[i], col= mediators_fixed_bic_pos$col[i], 
                   border= mediators_fixed_bic_pos$col[i],track.index =3)
     }
     
-    isnps_fixed_bic <- fread(isnp_res)
     
-    mediators_isnps_fixed_bic = data.frame(medi = isnps_fixed_bic$medi, isnps_for_medi = isnps_fixed_bic$snps_for_medi, 
-                                           snp_chr = paste0("Chr", as.integer(gsub("-.*","",isnps_fixed_bic$snps_for_medi))), 
-                                           snp_pos = as.integer(gsub(".*-","",isnps_fixed_bic$snps_for_medi)))
-    mediators_fixed_bic_pos_n = cbind(medi= mediators_fixed_bic$id, mediators_fixed_bic_pos[,c(1,2,3,5)])
-    mediators_isnps_fixed_bic = merge(mediators_isnps_fixed_bic, mediators_fixed_bic_pos_n, by = "medi")
+    isnps_fixed_bic <- fread(isnp_res, data.table=FALSE)
+    isnp <- isnps_fixed_bic[order(isnps_fixed_bic$medi, abs(isnps_fixed_bic$coef), decreasing=TRUE),]
+    
+    # plot top 3 iSNPs
+    isnp3 <- data.frame()
+    tb <- data.frame(table(isnp$medi))
+    for(i in 1:nrow(tb)){
+      sub <- subset(isnp, medi %in% tb$Var1[i])
+      if(nrow(sub) > 3){
+        sub3 <- sub[1:3, ]
+      }else{
+        sub3 <- sub
+      }
+      isnp3 <- rbind(isnp3, sub3)
+    }
+    
+    mediators_isnps_fixed_bic = data.frame(medi = isnp3$medi, isnps_for_medi = isnp3$snps_for_medi, 
+                                           snp_chr = paste0("Chr", as.integer(gsub("-.*","",isnp3$snps_for_medi))), 
+                                           snp_pos = as.integer(gsub(".*-","",isnp3$snps_for_medi)))
+    #mediators_fixed_bic_pos_n = cbind(medi= mediators_fixed_bic$id, mediators_fixed_bic_pos[,c(1,2,3,5)])
+    mediators_isnps_fixed_bic = merge(mediators_isnps_fixed_bic, mediators_fixed_bic_pos, by.x = "medi", by.y="id")
     
     for (i in 1 : nrow(mediators_isnps_fixed_bic)) {
       circos.link(mediators_isnps_fixed_bic$chr[i], c(mediators_isnps_fixed_bic$start[i], mediators_isnps_fixed_bic$end[i]), 
                   mediators_isnps_fixed_bic$snp_chr[i], mediators_isnps_fixed_bic$snp_pos[i], 
                   col = mediators_isnps_fixed_bic$col[i],  border = mediators_isnps_fixed_bic$col[i])
     }
-  }
-  
-
+  dev.off()
 }
 
