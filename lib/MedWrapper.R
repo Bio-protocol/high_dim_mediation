@@ -9,8 +9,8 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
   ###' P(FDP>gamma)<alpha where gamma = 0.1, and alpha could be 0.05
   p.adj.method = 'holmr'
   pval.cut=0.05
-  message(sprintf("###>>> running [ %s ] model with [ %s ] cores ...", model, ncores))
-  
+  message(sprintf("###>>> Conducting GMA with [ %s ] model using [ %s ] cores ...", model, ncores))
+  options(warn=-1)
   if(model == "MedFix_eq"){
     vs.fixed = adlasso2typeWrapper(y,X0,X,Z,pz=seq(0.01,0.99,length.out=20),pmax=length(y)-2,ncores=ncores) 
     
@@ -67,6 +67,7 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     if(nrow(mediators.mix.shrink) >= 1){
       fwrite(mediators.mix.shrink, out_med, sep=",", row.names=FALSE, quote=FALSE)}
   }
+  options(warn=0)
   message(sprintf("###>>> Analysis finished! Find results in folder [ %s ].", output_folder))
 }
 

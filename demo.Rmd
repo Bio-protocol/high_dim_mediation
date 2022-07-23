@@ -14,7 +14,7 @@ author: "Zhikai Yang, Qi Zhang, Jinliang Yang"
 - __Required software and versions__: 
     - [Rstudio](https://www.rstudio.com/products/rstudio/download/)
       
-```{r}
+```{r, eval=FALSE}
 install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
 ```
 
@@ -98,25 +98,28 @@ X0 <- getpca(Z, p=3) # here the first p=3 PCs were extracted.
 
 
 ```{r}
+subX = X[, 1:100]
 # run the fixed effect model that assign equal penalty on the two data types.
-run_GMA(y,X0,X,Z, ncores=10, model="MedFix_eq", output_folder="output/")
+run_GMA(y, X0, subX, Z, ncores=10, model="MedFix_eq", output_folder="output/")
 
 # run the fixed effect model that minimizes BIC
-run_GMA(y,X0,X,Z, ncores=10, model="MedFix_fixed", output_folder="output/")
+run_GMA(y, X0, subX, Z, ncores=10, model="MedFix_fixed", output_folder="output/")
 
 # run the random effect model using linear kernel, and extract the model that minimizes BIC
-run_GMA(y,X0,X,Z, ncores=4, model="MedMix_linear", output_folder="output/")
+run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_linear", output_folder="output/")
 
 # run the random effect model using shrink_EJ kernel, and extract the model that minimizes BIC
-run_GMA(y,X0,X,Z, ncores=10, model="MedMix_shrink", output_folder="output/")
+run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_shrink", output_folder="output/")
 
 ```
 
-#### Step 2: Visualize the results
+#### Step 3: Visualize the results
 
 - You can plot the results yourself using the below R code.
-- Note that you have to adjust the path at the begining in R script;
 
 ```{r}
-2_circos_visual.R
+library(circlize)
+library(data.table)
+library(dplyr)
+library(rrBLUP)
 ```
