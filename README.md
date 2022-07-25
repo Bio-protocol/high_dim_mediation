@@ -143,18 +143,36 @@ circos_med(gwas_res="output/gwas_results.csv",
 
 The outputs of the example data:  
 
-- `output/res_fixed_bic_trait_V1.csv, res_fixed_eq_trait_V1.csv, res_mixed_linear_trait_V1.csv, res_mixed_shrink_trait_V1.csv` : summaries of the results for different methods of mediation: MedFix_BIC, MedFix_0.5, MedMixed_Linear, MedMixed_Shrink (pmed.pure: proportion of the variance mediated, v.tot: variance of total effect, v.med: variance of indirect effect, v.dir: variance of direct effect, n.med: number of significant mediators after adjustment to control the false discovery proportion (FDP) in mediator selection, pval.cut: the threshold for deciding significance, n.direct: number of direct snps.)
-- `output/mediators_fixed_bic_trait_V1.csv, mediators_fixed_eq_trait_V1.csv, mediators_mix_linear_trait_V1.csv, mediators_mix_shrink_trait_V1.csv` : non-adjusted mediators of different methods of mediation: MedFix_BIC, MedFix_0.5, MedMixed_Linear, MedMixed_Shrink (id: mediator gene id, e2m: p-value of effect from exposure to mediator, m2y: p-value of effect from mediator to outcome, e2m2y: maximum value between e2m and m2y, padj: adjusted p-value, coef: product of effect from exposure to mediator and effect from mediator to outcome? )
-- `output/dsnps_fixed_bic_trait_V1.csv, dsnps_fixed_eq_trait_V1.csv` : direct SNPs identified (only MedFix methods will report direct SNPs; snp: direct SNP, pval: p-value of effect from exposure to outcome, coef: effect of from exposure to outcome)
-- `output/isnps_fixed_bic_trait_V1.csv, isnps_fixed_eq_trait_V1.csv` : indirect SNPs identified (only MedFix methods will report direct SNPs; medi: mediator gene, snps_for_medi: indirect SNPs for the corresponding mediator, coef: effect from exposure to mediator)
+#### dSNP: 
+- `output/dSNP_MedFix_eq_trait_V1.csv` and `output/dSNP_MedFix_fixed_trait_V1.csv`: direct SNPs identified using `MedFix_eq` and `MedFix_fixed` methods for trait `V1`. Note that only MedFix methods will report direct SNP. The output file contains the following columns: 
+  - snp: direct SNP; 
+  - pval: p-value of effect from exposure to outcome; 
+  - coef: SNP effect from exposure to outcome.
+
+#### iSNP:
+- `output/iSNP_MedFix_eq_trait_V1.csv` and `output/iSNP_MedFix_eq_trait_V1.csv`: indirect SNPs identified. Again, only `MedFix` methods will report direct SNPs. The output file contains the following columns: 
+  - medi: mediator gene under control by the iSNP;
+  - snps_for_medi: indirect SNPs for the corresponding mediator; 
+  - coef: effect from exposure to mediator.
+
+#### Mediator:
+- `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedMix_linear_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`: non-adjusted mediators detected by different methods of `MedFix_BIC`, `MedFix_0.5`, `MedMixed_Linear`, and `MedMixed_Shrink` for trait V1.
+  - id: mediator gene id; 
+  - e2m: p-value of effect from exposure to mediator; 
+  - m2y: p-value of effect from mediator to outcome; 
+  - e2m2y: maximum value between e2m and m2y; 
+  - padj: adjusted p-value; 
+  - coef: product of effect from exposure to mediator and effect from mediator to outcome.
 
 
-Visualization of outputs of MedFix_BIC and GWAS:
 
+
+### Visualization of GMA results:
 ![](graphs/circos.PNG)
 
-- In the circos plots, the outermost circular track represents the ten maize chromosomes; the next inner track shows the GWAS results, with two circular blue dashed lines indicating -log(p-value) of 5 and 10 and the red lines denoting the position of direct SNPs;
-the next inner track shows the relative positions of identified mediator genes with different genes represented by different colors; the lines in the innermost circle connects mediators with their corresponding indirect SNPs.
+- In the circos plots, the outermost circular track represents the ten chromosomes; 
+- The next inner track shows the GWAS results, with two circular blue dashed lines indicating -log(p-value) of 5 and 10 and the red lines denoting the position of direct SNPs;
+- The next inner track shows the relative positions of identified mediator genes with different genes represented by different colors; the lines in the innermost circle connects mediators with their corresponding indirect SNPs.
 
 ## License
 It is a free and open source software, licensed under [GPLv3](https://github.com/github/choosealicense.com/blob/gh-pages/_licenses/gpl-3.0.txt).
