@@ -117,8 +117,6 @@ run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_shrink", output_folder="output/
 
 #### Step 3: Visualize the results
 
-- You can plot the results yourself using the below R code.
-
 ```{r}
 library(circlize)
 library(dplyr)
