@@ -45,7 +45,8 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     if(nrow(mediators.fixed) >= 1){fwrite(mediators.fixed, out_med, sep=",", row.names=FALSE, quote=FALSE)}
     
     indirect_snps.fixed <- reportINDirectSNPs(mod=mod.fixed, e2m=e2m.fixed, tst=tests.fixed, pval.cut=pval.cut, Z=Z, colnames_X=colnames(X))
-    if(nrow(indirect_snps.fixed)>=1){fwrite(indirect_snps.fixed, out_isnp, sep=",", row.names=FALSE, quote=FALSE)}
+    if(nrow(indirect_snps.fixed)>=1){
+      fwrite(indirect_snps.fixed, out_isnp, sep=",", row.names=FALSE, quote=FALSE)}
   }
   if(model == "MedMix_linear"){
     ###' run the estimation step for MedMix using linear kernel, and extract the model that minimizes BIC
@@ -54,7 +55,7 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     tests.mix.linear = testMedMix(mod.mix.linear,p.adj.method=p.adj.method)
     ###' Report the mediators selected by each method
     mediators.mix.linear = reportMediator(mod=mod.mix.linear, tst=tests.mix.linear)
-    if(nrow(mediators.mix.linear) >= 1){
+    if(nrow(mediators.mix.linear) >= 0){
       fwrite(mediators.mix.linear, out_med, sep=",", row.names=FALSE, quote=FALSE)}
   }
   if(model == "MedMix_shrink"){
@@ -64,7 +65,7 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     tests.mix.shrink = testMedMix(mod.mix.shrink,p.adj.method=p.adj.method)
     ###' Report the mediators selected by each method
     mediators.mix.shrink = reportMediator(mod=mod.mix.shrink, tst=tests.mix.shrink)
-    if(nrow(mediators.mix.shrink) >= 1){
+    if(nrow(mediators.mix.shrink) >= 0){
       fwrite(mediators.mix.shrink, out_med, sep=",", row.names=FALSE, quote=FALSE)}
   }
   options(warn=0)

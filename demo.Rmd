@@ -89,7 +89,6 @@ X0 <- getpca(Z, p=3) # here the first p=3 PCs were extracted.
 
 
 ```{r}
-library(data.table)
 #library(GMA)
 library(glmnet)
 library(MASS)

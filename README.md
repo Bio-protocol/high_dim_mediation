@@ -15,7 +15,7 @@
       
 ```{r, eval=FALSE}
 install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", 
-                   "doParallel", "CompQuadForm", "circlize", "dplyr"))
+                   "doParallel", "CompQuadForm", "circlize", "dplyr", "RcolorBrewer"))
 ```
 
 ## Input Data
@@ -69,6 +69,7 @@ head(X0)
 # X0 = prcomp(Z)$x[,1:3] # use this line of code to calculate principal components if no X0_matrix.txt file provided
 ```
 
+------------------------------------------
 ## Major steps
 
 #### Step 1: Calculate confounding effect (or the `X0` matrix)
@@ -87,7 +88,6 @@ X0 <- getpca(Z, p=3) # here the first p=3 PCs were extracted.
 
 
 ```{r}
-library(data.table)
 #library(GMA)
 library(glmnet)
 library(MASS)
@@ -122,12 +122,13 @@ run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_shrink", output_folder="output/
 ```{r}
 library(circlize)
 library(dplyr)
+library("RColorBrewer")
 
 gwas <- qGWAS(y, Z, plot=FALSE)
 fwrite(gwas, "output/gwas_results.csv", sep=",", row.names = FALSE, quote=FALSE)
 
 
-
+source("lib/circosplot.R")
 circos_med(gwas_res="output/gwas_results.csv",
            med_res="output/mediators_fixed_bic_trait_V1.csv", 
            dsnp_res="output/dsnps_fixed_bic_trait_V1.csv", 
@@ -137,29 +138,24 @@ circos_med(gwas_res="output/gwas_results.csv",
            out_tiff = "graphs/circos.tiff")
 ```
 
-
-
 ## Expected results
 
 The outputs of the example data:  
 
 #### dSNP: 
-Direct SNPs identified using `MedFix_eq` and `MedFix_fixed` methods for trait `V1`. Note that only MedFix methods will report direct SNP. 
-- `output/dSNP_MedFix_eq_trait_V1.csv` and `output/dSNP_MedFix_fixed_trait_V1.csv`. The output file contains the following columns: 
+- `output/dSNP_MedFix_eq_trait_V1.csv` and `output/dSNP_MedFix_fixed_trait_V1.csv`: direct SNPs identified using `MedFix_eq` and `MedFix_fixed` methods for trait `V1`. Note that only MedFix methods will report direct SNP. The output file contains the following columns: 
   - snp: direct SNP; 
   - pval: p-value of effect from exposure to outcome; 
   - coef: SNP effect from exposure to outcome.
 
-#### iSNP: 
-Indirect SNPs identified. Again, only `MedFix` methods will report direct SNPs. 
-- `output/iSNP_MedFix_eq_trait_V1.csv` and `output/iSNP_MedFix_eq_trait_V1.csv`. The output file contains the following columns: 
+#### iSNP:
+- `output/iSNP_MedFix_eq_trait_V1.csv` and `output/iSNP_MedFix_eq_trait_V1.csv`: indirect SNPs identified. Again, only `MedFix` methods will report direct SNPs. The output file contains the following columns: 
   - medi: mediator gene under control by the iSNP;
   - snps_for_medi: indirect SNPs for the corresponding mediator; 
   - coef: effect from exposure to mediator.
 
 #### Mediator:
-Non-adjusted mediators detected by different methods of `MedFix_BIC`, `MedFix_0.5`, `MedMixed_Linear`, and `MedMixed_Shrink` for trait V1.
-- `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedMix_linear_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`: The output file contains the following columns:
+- `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedMix_linear_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`: non-adjusted mediators detected by different methods of `MedFix_BIC`, `MedFix_0.5`, `MedMixed_Linear`, and `MedMixed_Shrink` for trait V1.
   - id: mediator gene id; 
   - e2m: p-value of effect from exposure to mediator; 
   - m2y: p-value of effect from mediator to outcome; 
@@ -171,6 +167,7 @@ Non-adjusted mediators detected by different methods of `MedFix_BIC`, `MedFix_0.
 
 
 ### Visualization of GMA results:
+
 ![](graphs/circos.PNG)
 
 - In the circos plots, the outermost circular track represents the ten chromosomes; 
