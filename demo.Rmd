@@ -16,7 +16,7 @@ author: "Zhikai Yang, Qi Zhang, Jinliang Yang"
       
 ```{r, eval=FALSE}
 install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", 
-                   "doParallel", "CompQuadForm", "circlize", "dplyr"))
+                   "doParallel", "CompQuadForm", "circlize", "dplyr", "RcolorBrewer"))
 ```
 
 ## Input Data
@@ -70,6 +70,7 @@ head(X0)
 # X0 = prcomp(Z)$x[,1:3] # use this line of code to calculate principal components if no X0_matrix.txt file provided
 ```
 
+------------------------------------------
 ## Major steps
 
 #### Step 1: Calculate confounding effect (or the `X0` matrix)
@@ -123,12 +124,13 @@ run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_shrink", output_folder="output/
 ```{r}
 library(circlize)
 library(dplyr)
+library("RColorBrewer")
 
 gwas <- qGWAS(y, Z, plot=FALSE)
 fwrite(gwas, "output/gwas_results.csv", sep=",", row.names = FALSE, quote=FALSE)
 
 
-
+source("lib/circosplot.R")
 circos_med(gwas_res="output/gwas_results.csv",
            med_res="output/mediators_fixed_bic_trait_V1.csv", 
            dsnp_res="output/dsnps_fixed_bic_trait_V1.csv", 
