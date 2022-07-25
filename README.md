@@ -10,12 +10,12 @@
 - __Running environment__: 
     - The workflow was constructed based on the __Linux system__ running the [R v4.1.1](https://cran.r-project.org/).
 
-- __Required software packages__: 
+- __Required software and versions__: 
     - [Rstudio](https://www.rstudio.com/products/rstudio/download/)
-    - `install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))`
-        
-```R
-install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doParallel", "CompQuadForm"))
+      
+```{r, eval=FALSE}
+install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", 
+                   "doParallel", "CompQuadForm", "circlize", "dplyr"))
 ```
 
 ## Input Data
@@ -24,36 +24,119 @@ install.packages(c("data.table", "glmnet", "MASS", "rrBLUP", "parallel", "doPara
 
 - __y matrix__ (`input/y_matrix.txt`): 
   - A `n x 1` matrix of phenotype values; `n` is the number of individuals.
+  
+```{r}
+library("data.table")
+y <- fread("input/y_matrix.txt", header=T,data.table=FALSE)
+y = as.matrix(y)
+dim(y) #271   1
+head(y)
+```
+
+  
 - __Z matrix__ (`input/Z_matrix.txt`): 
-  - The `n x m` genotype matrix of  data; `m` is the number of bi-allelic SNP markers, coded as `-1, 0, 1`.
+  - The `n x m` genotype matrix of data; `m` is the number of bi-allelic SNP markers, coded as `-1, 0, 1`.
+
+```{r}
+Z <- fread("input/Z_matrix.txt", header=T,data.table=FALSE)
+Z = as.matrix(Z)
+dim(Z) #271 5000
+Z[1:10, 1:10]
+```
+  
 - __X matrix__ (`input/X_matrix.txt`): 
   - The `n x k` intermediate Omics matrix; `k` is the number of Omics traits. 
   In the example, gene expression data (i.e., RNA-seq read counts of `k` genes) was used as the intermediate traits .
 
+```{r}
+X <- fread("input/X_matrix.txt", header=T,data.table=FALSE)
+X = as.matrix(X)
+dim(X) #271 1200
+X[1:10, 1:10]
+```
+
 
 #### Optional input data:
+
 - __X0 matrix__ (`input/X0_matrix.txt`): 
   - A matrix of confounding effects. In the example, three principal components calculated from the Z matrix were used to control population structure.
   
-
+```{r}
+X0 <- fread("input/X0_matrix.txt", header=T,data.table=FALSE)
+X0 = as.matrix(X0)
+dim(X0) #271   3
+head(X0)
+# X0 = prcomp(Z)$x[,1:3] # use this line of code to calculate principal components if no X0_matrix.txt file provided
+```
 
 ## Major steps
 
-#### Step 1: running the 1_mediation_demo.R to conduct mediation analysis
-- Note that you have to adjust the path at the begining in R script; and the path, ntasks, mem, time in the shell script.
+#### Step 1: Calculate confounding effect (or the `X0` matrix)
+
+Several principal components can be used as the fixed effects to control population structure as the confounding effects if using a structured population.
+
+```{r}
+source('lib/utils.R')
+        
+Z <- fread("input/Z_matrix.txt", header=T, data.table=FALSE)
+Z = as.matrix(Z)
+X0 <- getpca(Z, p=3) # here the first p=3 PCs were extracted.
+```
+
+#### Step 2: Conduct GMA using different methods
+
+
+```{r}
+library(data.table)
+#library(GMA)
+library(glmnet)
+library(MASS)
+library(rrBLUP)
+library(parallel)
+library(doParallel)
+library(CompQuadForm)
+source('lib/highmed2019.r')
+source('lib/fromSKAT.R')
+source('lib/MedWrapper.R')
+source('lib/reporters.R')
+
+subX = X[, 1:100]
+# run the fixed effect model that assign equal penalty on the two data types.
+run_GMA(y, X0, subX, Z, ncores=10, model="MedFix_eq", output_folder="output/")
+
+# run the fixed effect model that minimizes BIC
+run_GMA(y, X0, subX, Z, ncores=10, model="MedFix_fixed", output_folder="output/")
+
+# run the random effect model using linear kernel, and extract the model that minimizes BIC
+run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_linear", output_folder="output/")
+
+# run the random effect model using shrink_EJ kernel, and extract the model that minimizes BIC
+run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_shrink", output_folder="output/")
 
 ```
-sbatch workflow/1_mediation_demo.sh
-```
 
-#### Step 2: Visualize the results
+#### Step 3: Visualize the results
 
 - You can plot the results yourself using the below R code.
-- Note that you have to adjust the path at the begining in R script;
 
+```{r}
+library(circlize)
+library(dplyr)
+
+gwas <- qGWAS(y, Z, plot=FALSE)
+fwrite(gwas, "output/gwas_results.csv", sep=",", row.names = FALSE, quote=FALSE)
+
+
+
+circos_med(gwas_res="output/gwas_results.csv",
+           med_res="output/mediators_fixed_bic_trait_V1.csv", 
+           dsnp_res="output/dsnps_fixed_bic_trait_V1.csv", 
+           isnp_res="output/isnps_fixed_bic_trait_V1.csv",
+           chrlen="input/Chromosome_v4.txt", 
+           gene_position= "input/gene_pos.csv",
+           out_tiff = "graphs/circos.tiff")
 ```
-2_circos_visual.R
-```
+
 
 
 ## Expected results
