@@ -144,19 +144,22 @@ circos_med(gwas_res="output/gwas_results.csv",
 The outputs of the example data:  
 
 #### dSNP: 
-- `output/dSNP_MedFix_eq_trait_V1.csv` and `output/dSNP_MedFix_fixed_trait_V1.csv`: direct SNPs identified using `MedFix_eq` and `MedFix_fixed` methods for trait `V1`. Note that only MedFix methods will report direct SNP. The output file contains the following columns: 
+Direct SNPs identified using `MedFix_eq` and `MedFix_fixed` methods for trait `V1`. Note that only MedFix methods will report direct SNP. 
+- `output/dSNP_MedFix_eq_trait_V1.csv` and `output/dSNP_MedFix_fixed_trait_V1.csv`. The output file contains the following columns: 
   - snp: direct SNP; 
   - pval: p-value of effect from exposure to outcome; 
   - coef: SNP effect from exposure to outcome.
 
-#### iSNP:
-- `output/iSNP_MedFix_eq_trait_V1.csv` and `output/iSNP_MedFix_eq_trait_V1.csv`: indirect SNPs identified. Again, only `MedFix` methods will report direct SNPs. The output file contains the following columns: 
+#### iSNP: 
+Indirect SNPs identified. Again, only `MedFix` methods will report direct SNPs. 
+- `output/iSNP_MedFix_eq_trait_V1.csv` and `output/iSNP_MedFix_eq_trait_V1.csv`. The output file contains the following columns: 
   - medi: mediator gene under control by the iSNP;
   - snps_for_medi: indirect SNPs for the corresponding mediator; 
   - coef: effect from exposure to mediator.
 
 #### Mediator:
-- `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedMix_linear_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`: non-adjusted mediators detected by different methods of `MedFix_BIC`, `MedFix_0.5`, `MedMixed_Linear`, and `MedMixed_Shrink` for trait V1.
+Non-adjusted mediators detected by different methods of `MedFix_BIC`, `MedFix_0.5`, `MedMixed_Linear`, and `MedMixed_Shrink` for trait V1.
+- `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`, `output/mediator_MedMix_linear_trait_V1.csv`, `output/mediator_MedFix_eq_trait_V1.csv`: The output file contains the following columns:
   - id: mediator gene id; 
   - e2m: p-value of effect from exposure to mediator; 
   - m2y: p-value of effect from mediator to outcome; 
