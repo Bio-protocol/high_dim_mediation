@@ -185,5 +185,10 @@ The mediator output files contain the following columns:
 - The next inner track shows the GWAS results, with two circular blue dashed lines indicating -log(p-value) of 5 and 10 and the red lines denoting the position of direct SNPs;
 - The next inner track shows the relative positions of identified mediator genes with different genes represented by different colors; the lines in the innermost circle connects mediators with their corresponding indirect SNPs.
 
+### Citations
+
+- Zhang, Qi. "High-dimensional mediation analysis with applications to causal gene identification." Statistics in Biosciences (2021): 1-20.
+- Yang, Zhikai, Gen Xu, Qi Zhang, Toshihiro Obata, and Jinliang Yang. "Genome-wide mediation analysis: an empirical study to connect phenotype with genotype via intermediate transcriptomic data in maize." Genetics 221, no. 2 (2022): iyac057.
+
 ## License
 It is a free and open source software, licensed under [GPLv3](https://github.com/github/choosealicense.com/blob/gh-pages/_licenses/gpl-3.0.txt).
