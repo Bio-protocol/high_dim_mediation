@@ -100,18 +100,18 @@ source('lib/fromSKAT.R')
 source('lib/MedWrapper.R')
 source('lib/reporters.R')
 
-subX = X[, 1:100]
+
 # run the fixed effect model that assign equal penalty on the two data types.
-run_GMA(y, X0, subX, Z, ncores=10, model="MedFix_eq", output_folder="output/")
+run_GMA(y, X0, X, Z, ncores=10, model="MedFix_eq", output_folder="output/")
 
 # run the fixed effect model that minimizes BIC
-run_GMA(y, X0, subX, Z, ncores=10, model="MedFix_fixed", output_folder="output/")
+run_GMA(y, X0, X, Z, ncores=10, model="MedFix_fixed", output_folder="output/")
 
 # run the random effect model using linear kernel, and extract the model that minimizes BIC
-run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_linear", output_folder="output/")
+run_GMA(y, X0, X, Z, ncores=10, model="MedMix_linear", output_folder="output/")
 
 # run the random effect model using shrink_EJ kernel, and extract the model that minimizes BIC
-run_GMA(y, X0, subX, Z, ncores=10, model="MedMix_shrink", output_folder="output/")
+run_GMA(y, X0, X, Z, ncores=10, model="MedMix_shrink", output_folder="output/")
 
 ```
 
