@@ -1,6 +1,7 @@
 #' 
 run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"){
   trait = colnames(y)[1]
+  out_res <- paste0(output_folder, "/res_", model, "_trait_", trait, ".csv")
   out_dsnp <- paste0(output_folder, "/dSNP_", model, "_trait_", trait, ".csv")
   out_isnp <- paste0(output_folder, "/iSNP_", model, "_trait_", trait, ".csv")
   out_med <- paste0(output_folder, "/mediator_", model, "_trait_", trait, ".csv")
@@ -18,6 +19,8 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     # for mod.eq, run the mediator models for the mediators with non-zero estimated coefficient in the outcome model
     e2m.eq= e2mFixed(mod.eq,ncores=ncores) 
     tests.eq=testMedFix(mod.eq,e2m.eq,p.adj.method=p.adj.method)
+    res.eq.pcut = medH.L2fixed(mod.eq,e2m.eq,tests.eq,pval.cut=pval.cut)
+    fwrite(as.list(res.eq.pcut), out_res, sep=",", row.names=FALSE, quote=FALSE)
     
     directsnps.eq = reportDirectSNPs(mod=mod.eq, tst=tests.eq)
     if(nrow(directsnps.eq) >=1){
@@ -38,6 +41,9 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     e2m.fixed= e2mFixed(mod.fixed,ncores=ncores) 
     
     tests.fixed=testMedFix(mod.fixed,e2m.fixed,p.adj.method=p.adj.method)
+    res.fixed.pcut = medH.L2fixed(mod.fixed,e2m.fixed,tests.fixed,pval.cut=pval.cut)
+    fwrite(as.list(res.fixed.pcut), out_res, sep=",", row.names=FALSE, quote=FALSE)
+    
     directsnps.fixed = reportDirectSNPs(mod=mod.fixed, tst=tests.fixed)
     if(nrow(directsnps.fixed)>=1){fwrite(directsnps.fixed, out_dsnp, sep=",", row.names=FALSE, quote=FALSE)}
     
@@ -53,6 +59,9 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     vs.mix.linear = adlassoMixWrapper(y,X0,X,Z,kernel='linear',ncores=ncores)
     mod.mix.linear = vs.mix.linear[['model']]
     tests.mix.linear = testMedMix(mod.mix.linear,p.adj.method=p.adj.method)
+    res.mix.linear.pcut = medH.L2(mod.mix.linear,tests.mix.linear,pval.cut=pval.cut)
+    fwrite(as.list(res.mix.linear.pcut), out_res, sep=",", row.names=FALSE, quote=FALSE)
+    
     ###' Report the mediators selected by each method
     mediators.mix.linear = reportMediator(mod=mod.mix.linear, tst=tests.mix.linear)
     if(nrow(mediators.mix.linear) >= 0){
@@ -63,6 +72,9 @@ run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"
     vs.mix.shrink = adlassoMixWrapper(y,X0,X,Z,kernel='shrink_EJ',ncores=ncores)
     mod.mix.shrink = vs.mix.shrink[['model']]
     tests.mix.shrink = testMedMix(mod.mix.shrink,p.adj.method=p.adj.method)
+    res.mix.shrink.pcut = medH.L2(mod.mix.shrink,tests.mix.shrink,pval.cut=pval.cut)
+    fwrite(as.list(res.mix.shrink.pcut), out_res, sep=",", row.names=FALSE, quote=FALSE)
+    
     ###' Report the mediators selected by each method
     mediators.mix.shrink = reportMediator(mod=mod.mix.shrink, tst=tests.mix.shrink)
     if(nrow(mediators.mix.shrink) >= 0){
