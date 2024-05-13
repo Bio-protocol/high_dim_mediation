@@ -1,7 +1,81 @@
+#' 
+run_GMA <- function(y,X0,X,Z, ncores, model="MedFix_eq", output_folder="output/"){
+  trait = colnames(y)[1]
+  out_dsnp <- paste0(output_folder, "/dSNP_", model, "_trait_", trait, ".csv")
+  out_isnp <- paste0(output_folder, "/iSNP_", model, "_trait_", trait, ".csv")
+  out_med <- paste0(output_folder, "/mediator_", model, "_trait_", trait, ".csv")
+  
+  ###' perform the hypotheses testing step that control fasle discovery proportion (FDP) below gamma
+  ###' P(FDP>gamma)<alpha where gamma = 0.1, and alpha could be 0.05
+  p.adj.method = 'holmr'
+  pval.cut=0.05
+  message(sprintf("###>>> Conducting GMA with [ %s ] model using [ %s ] cores ...", model, ncores))
+  options(warn=-1)
+  if(model == "MedFix_eq"){
+    vs.fixed = adlasso2typeWrapper(y,X0,X,Z,pz=seq(0.01,0.99,length.out=20),pmax=length(y)-2,ncores=ncores) 
+    
+    mod.eq = vs.fixed[['mod.eq']] # extract the model that assign equal penalty on the two data types.
+    # for mod.eq, run the mediator models for the mediators with non-zero estimated coefficient in the outcome model
+    e2m.eq= e2mFixed(mod.eq,ncores=ncores) 
+    tests.eq=testMedFix(mod.eq,e2m.eq,p.adj.method=p.adj.method)
+    
+    directsnps.eq = reportDirectSNPs(mod=mod.eq, tst=tests.eq)
+    if(nrow(directsnps.eq) >=1){
+      fwrite(directsnps.eq, out_dsnp, sep=",", row.names=FALSE, quote=FALSE)}
+    
+    mediators.eq = reportMediator(mod=mod.eq, tst=tests.eq)
+    if(nrow(mediators.eq) >= 1){
+      fwrite(mediators.eq, out_med, sep=",", row.names=FALSE, quote=FALSE)}
+    
+    indirect_snps.eq <- reportINDirectSNPs(mod=mod.eq, e2m=e2m.eq, tst=tests.eq, pval.cut=pval.cut, Z=Z, colnames_X=colnames(X))
+    if(nrow(indirect_snps.eq)>=1){
+      fwrite(indirect_snps.eq, out_isnp, sep=",", row.names=FALSE, quote=FALSE)}
+  }
+  if(model == "MedFix_fixed"){
+    vs.fixed = adlasso2typeWrapper(y,X0,X,Z,ncores=ncores) 
+    mod.fixed = vs.fixed[['model']]  # extract the model that minimizes BIC
+    # for mod.fixed, run the mediator models for the mediators with non-zero estimated coefficient in the outcome model
+    e2m.fixed= e2mFixed(mod.fixed,ncores=ncores) 
+    
+    tests.fixed=testMedFix(mod.fixed,e2m.fixed,p.adj.method=p.adj.method)
+    directsnps.fixed = reportDirectSNPs(mod=mod.fixed, tst=tests.fixed)
+    if(nrow(directsnps.fixed)>=1){fwrite(directsnps.fixed, out_dsnp, sep=",", row.names=FALSE, quote=FALSE)}
+    
+    mediators.fixed = reportMediator(mod=mod.fixed, tst=tests.fixed)
+    if(nrow(mediators.fixed) >= 1){fwrite(mediators.fixed, out_med, sep=",", row.names=FALSE, quote=FALSE)}
+    
+    indirect_snps.fixed <- reportINDirectSNPs(mod=mod.fixed, e2m=e2m.fixed, tst=tests.fixed, pval.cut=pval.cut, Z=Z, colnames_X=colnames(X))
+    if(nrow(indirect_snps.fixed)>=1){
+      fwrite(indirect_snps.fixed, out_isnp, sep=",", row.names=FALSE, quote=FALSE)}
+  }
+  if(model == "MedMix_linear"){
+    ###' run the estimation step for MedMix using linear kernel, and extract the model that minimizes BIC
+    vs.mix.linear = adlassoMixWrapper(y,X0,X,Z,kernel='linear',ncores=ncores)
+    mod.mix.linear = vs.mix.linear[['model']]
+    tests.mix.linear = testMedMix(mod.mix.linear,p.adj.method=p.adj.method)
+    ###' Report the mediators selected by each method
+    mediators.mix.linear = reportMediator(mod=mod.mix.linear, tst=tests.mix.linear)
+    if(nrow(mediators.mix.linear) >= 0){
+      fwrite(mediators.mix.linear, out_med, sep=",", row.names=FALSE, quote=FALSE)}
+  }
+  if(model == "MedMix_shrink"){
+    ###' run the estimation step for MedMix using shrink_EJ kernel, and extract the model that minimizes BIC
+    vs.mix.shrink = adlassoMixWrapper(y,X0,X,Z,kernel='shrink_EJ',ncores=ncores)
+    mod.mix.shrink = vs.mix.shrink[['model']]
+    tests.mix.shrink = testMedMix(mod.mix.shrink,p.adj.method=p.adj.method)
+    ###' Report the mediators selected by each method
+    mediators.mix.shrink = reportMediator(mod=mod.mix.shrink, tst=tests.mix.shrink)
+    if(nrow(mediators.mix.shrink) >= 0){
+      fwrite(mediators.mix.shrink, out_med, sep=",", row.names=FALSE, quote=FALSE)}
+  }
+  options(warn=0)
+  message(sprintf("###>>> Analysis finished! Find results in folder [ %s ].", output_folder))
+}
+
+
 
 ###' New wrapper functions for each method, they source the function script highmed2019.r
-
-adlassoMixWrapper <- function(Z,X,X0,y,kernel='linear',ncores=1,pmax=length(y)-2){  
+adlassoMixWrapper <- function(y,X0,X,Z,kernel='linear',ncores=1,pmax=length(y)-2){  
   # This function is a wrapper function that runs the adaptive lasso for linear mixed model 
   # for a sequence of penalty parameter lambda, and output the result that minimizes BIC
   if(kernel=='shrink_EJ'){
@@ -24,7 +98,7 @@ adlassoMixWrapper <- function(Z,X,X0,y,kernel='linear',ncores=1,pmax=length(y)-2
   results.all = foreach(lambda=lambda.seq) %dopar% {
     library(glmnet)
     library(MASS)
-    source('highmed2019.r')
+    source('lib/highmed2019.r')
     try(adlassoMix(X,y,K,X0=X0,lambda=lambda,init=list(tau=var(y)/2,ve=var(y)/2),pmax = pmax,err.max=1e-5,iter.max=200,iter.lasso.max=1e4,method.var='REML')) ## 'MLE') ## method.var=MLE or REML
   }
   names(results.all) = lambda.seq
@@ -36,7 +110,6 @@ adlassoMixWrapper <- function(Z,X,X0,y,kernel='linear',ncores=1,pmax=length(y)-2
   return(list(model=mod.final,bic=bic.all,negll=negll.all,s0=s0.all,lambda=lambda.all,results.all=results.all)) 
 }
 
-###' 
 ###' 
 adlasso2typeWrapper <- function(y,X0,X,Z,pz=seq(0.01,0.99,length.out=20),pmax=length(y)-2,ncores=16){ 
   ## wrapper of medfix with tuning parameter selection based on BIC

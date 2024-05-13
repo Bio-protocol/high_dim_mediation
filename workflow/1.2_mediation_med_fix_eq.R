@@ -53,7 +53,8 @@ adlassoMixWrapper <- function(Z,X,X0,y,kernel='linear',ncores=1,pmax=length(y)-2
 
 ###' 
 ###' 
-adlasso2typeWrapper <- function(y,X0,X,Z,pz=seq(0.01,0.99,length.out=20),pmax=length(y)-2,ncores=16){ ## wrapper of medfix with tuning parameter selection based on BIC
+adlasso2typeWrapper <- function(y,X0,X,Z,pz=seq(0.01,0.99,length.out=20),pmax=length(y)-2,ncores=16){ 
+  ## wrapper of medfix with tuning parameter selection based on BIC
   ## the fixed model should NOT include the intercept in X0
   n = length(y)
   p0 = ncol(X0)
